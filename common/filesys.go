@@ -1,0 +1,107 @@
+package common
+
+import (
+	"os"
+	"path/filepath"
+)
+
+// FileInfo holds details about a file or directory
+type FileInfo struct {
+	Path  string
+	Name  string
+	Ext   string
+	IsDir bool
+}
+
+// ListFiles retrieves files based on specified criteria
+func ListFiles(dir string, extensions []string, includeDirs bool) ([]FileInfo, error) {
+	var fileList []FileInfo
+
+	// Default to current directory if none provided
+	if dir == "" {
+		// Use the existing 'dir' variable from the function parameter
+		currentDir, err := os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+		// Update the 'dir' variable with the current directory
+		dir = currentDir
+	}
+
+	// Walk through the directory
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Ignore hidden files
+		if info.Name()[0] == '.' {
+			return nil
+		}
+
+		// Check if extension matches or return all files
+		if includeDirs || matchExtension(path, extensions) {
+			ext := filepath.Ext(path)
+			if ext == "" {
+				ext = "nil" // Set extension to "nil" for directories
+			}
+			fileInfo := FileInfo{
+				Path:  path,
+				Name:  info.Name(),
+				Ext:   ext,
+				IsDir: info.IsDir(),
+			}
+			fileList = append(fileList, fileInfo)
+		}
+
+		return nil
+	})
+
+	return fileList, err
+}
+
+// matchExtension checks if the file has one of the given extensions
+func matchExtension(path string, extensions []string) bool {
+	ext := filepath.Ext(path)
+	for _, extToCheck := range extensions {
+		if ext == extToCheck {
+			return true
+		}
+	}
+	return false
+}
+
+// func main() {
+// 	// Example 1: List all files and directories with details
+// 	allFiles, err := ListFiles("", nil, true)
+// 	if err != nil {
+// 		fmt.Println("Error:", err)
+// 		return
+// 	}
+// 	fmt.Println("All files and directories:")
+// 	for _, file := range allFiles {
+// 		fmt.Printf("Path: %s, Name: %s, Ext: %s, IsDir: %t\n", file.Path, file.Name, file.Ext, file.IsDir)
+// 	}
+
+// 	// Example 2: List files with extensions .png, .jpg, and .jpeg
+// 	imageFiles, err := ListFiles("", []string{".png", ".jpg", ".jpeg"}, false)
+// 	if err != nil {
+// 		fmt.Println("Error:", err)
+// 		return
+// 	}
+// 	fmt.Println("Image files:")
+// 	for _, file := range imageFiles {
+// 		fmt.Printf("Path: %s, Name: %s, Ext: %s, IsDir: %t\n", file.Path, file.Name, file.Ext, file.IsDir)
+// 	}
+
+// 	// Example 3: List files in specific directory excluding directories
+// 	specificFiles, err := ListFiles("/path/to/directory", []string{".txt", ".csv"}, false)
+// 	if err != nil {
+// 		fmt.Println("Error:", err)
+// 		return
+// 	}
+// 	fmt.Println("Files in /path/to/directory with extensions .txt and .csv:")
+// 	for _, file := range specificFiles {
+// 		fmt.Printf("Path: %s, Name: %s, Ext: %s, IsDir: %t\n", file.Path, file.Name, file.Ext, file.IsDir)
+// 	}
+// }
