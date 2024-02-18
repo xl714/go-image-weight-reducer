@@ -1,0 +1,11 @@
+package common
+
+import (
+	"fmt"
+	"reflect"
+)
+
+func printType(v interface{}) {
+	t := reflect.TypeOf(v)
+	fmt.Printf("Type of %v: %v\n", v, t)
+}

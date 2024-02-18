@@ -9,12 +9,12 @@ import (
 // ParseArguments processes command-line arguments and returns them as a struct
 func ParseArguments() (Arguments, error) {
 	var maxWeight float64
-	var limit bool
+	var limit int
 	var verbose bool
 
 	// Define flags with default values and usage descriptions
 	flag.Float64Var(&maxWeight, "Image-max-weight", 1.5, "Maximum allowed weight for images (in MB)")
-	flag.BoolVar(&limit, "Limit", false, "Enables limiting functionality (not implemented yet)")
+	flag.IntVar(&limit, "Limit", 0, "Enables limiting functionality (not implemented yet)")
 	flag.BoolVar(&verbose, "Verbose", false, "Print additional information during execution")
 
 	flag.Parse() // Parse command line arguments
@@ -27,7 +27,7 @@ func ParseArguments() (Arguments, error) {
 
 	if maxWeight <= 0 {
 		//return Arguments{}, fmt.Errorf("Image max weight must be a positive number")
-		return Arguments{}, fmt.Errorf("Invalid Image max weight: %v", maxWeight)
+		return Arguments{}, fmt.Errorf("invalid Image max weight: %v", maxWeight)
 	}
 
 	// Create a struct to hold the parsed arguments
@@ -43,6 +43,6 @@ func ParseArguments() (Arguments, error) {
 // Arguments struct holds the parsed command-line arguments
 type Arguments struct {
 	MaxWeight float64
-	Limit     bool
+	Limit     int
 	Verbose   bool
 }

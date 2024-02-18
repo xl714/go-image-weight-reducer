@@ -3,12 +3,17 @@
 Execute the following command to run the code:
 
 ```
-
 go mod init github.com/xl714/go-image-weight-reducer
+ 
 go mod tidy
 
-
 go run main.go
+```
+
+to import a new external module
+
+```
+go get github.com/nfnt/resize
 ```
 
 Formatting: For better readability, use the go fmt command to automatically format your code:

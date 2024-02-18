@@ -1,16 +1,18 @@
 package common
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 )
 
 // FileInfo holds details about a file or directory
 type FileInfo struct {
-	Path  string
-	Name  string
-	Ext   string
-	IsDir bool
+	Path   string
+	Name   string
+	Ext    string
+	IsDir  bool
+	Weight float64
 }
 
 // ListFiles retrieves files based on specified criteria
@@ -45,11 +47,23 @@ func ListFiles(dir string, extensions []string, includeDirs bool) ([]FileInfo, e
 			if ext == "" {
 				ext = "nil" // Set extension to "nil" for directories
 			}
+
+			var weight float64
+			weight = 0.0
+			if !info.IsDir() {
+				fileStat, err := os.Stat(path)
+				if err != nil {
+					return err
+				}
+				weight = float64(fileStat.Size()) / (1024 * 1024)
+			}
+
 			fileInfo := FileInfo{
-				Path:  path,
-				Name:  info.Name(),
-				Ext:   ext,
-				IsDir: info.IsDir(),
+				Path:   path,
+				Name:   info.Name(),
+				Ext:    ext,
+				IsDir:  info.IsDir(),
+				Weight: weight,
 			}
 			fileList = append(fileList, fileInfo)
 		}
@@ -69,6 +83,21 @@ func matchExtension(path string, extensions []string) bool {
 		}
 	}
 	return false
+}
+
+func GetFileWeight(path string) (float64, error) {
+	// Get file information
+	fileInfo, err := os.Stat(path)
+	// print file info:
+	fmt.Println(fileInfo)
+	if err != nil {
+		return 0, err
+	}
+
+	// Calculate the file size in Mega Octet (MB)
+	fileSizeMB := float64(fileInfo.Size()) / (1024 * 1024)
+
+	return fileSizeMB, nil
 }
 
 // func main() {
