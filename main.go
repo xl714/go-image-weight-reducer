@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	// Import the function from the same directory
-	arguments "github.com/xl714/go-image-weight-reducer/common"
-	filesys "github.com/xl714/go-image-weight-reducer/common"
+	common "github.com/xl714/go-image-weight-reducer/common"
+	//filesys "github.com/xl714/go-image-weight-reducer/common"
 	imagehelper "github.com/xl714/go-image-weight-reducer/imagehelper"
 )
 
 func main() {
-	args, err := arguments.ParseArguments()
+	args, err := common.ParseArguments()
 	if err != nil {
 		fmt.Println("Error parsing arguments:", err)
 		return
@@ -22,7 +22,7 @@ func main() {
 	fmt.Printf("Verbose mode: %t\n", args.Verbose)
 
 	//imageFiles, err := filesys.ListFiles("images", []string{".png", ".jpg", ".jpeg"}, false)
-	imageFiles, err := filesys.ListFiles("images", []string{".jpg", ".jpeg"}, false)
+	imageFiles, err := common.ListFiles("images", []string{".jpg", ".jpeg"}, false)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
