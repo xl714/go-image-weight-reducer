@@ -10,6 +10,13 @@ import (
 	imagehelper "github.com/xl714/go-image-weight-reducer/imagehelper"
 )
 
+type Arguments struct {
+	MaxWeight float64
+	Limit     int
+	Verbose   bool
+}
+
+
 type FileInfo struct {
 	Path   string
 	Name   string
@@ -20,9 +27,9 @@ type FileInfo struct {
 
 type ProcessInfo struct {
 	Path string
-	SizeOriginal int64
+	SizeOriginal float64
 	IsResized bool
-	SizeNew int64
+	SizeNew float64
 	ErrorMessage string
 	DateUpdatedOriginal string
 	DateUpdatedNew string
@@ -50,7 +57,7 @@ func main() {
 	}
 	
 	var wg sync.WaitGroup
-	processInfoChan := make(chan FileInfo)
+	processInfoChan := make(chan ProcessInfo)
 
 	fmt.Println("Image files:")
 
@@ -84,17 +91,21 @@ func main() {
 	}
 }
 
-func processFile(file:FileInfo, maxWeight, verbose, wg *sync.WaitGroup, ch chan<- ProcessInfo) {
+func processFile(file common.FileInfo, maxWeight float64, verbose bool, wg *sync.WaitGroup, ch chan<- ProcessInfo) {
 	defer wg.Done()
 
-	newPath, err := imagehelper.ResizeImage(file.Path, file.Ext, file.Weight, maxWeight, verbose)
+	newPath, err := imagehelper.ResizeImage(file.Path, file.Ext, file.Weight, maxWeight , verbose)
+	if err != nil {
+		fmt.Println("    Error  imagehelper.ResizeImage:", err)
+	} else {
+		fmt.Printf("   Image reduced new path: %s\n", newPath)
+	}
 
 	processInfo := ProcessInfo{
         Path:                newPath,
         SizeOriginal:        file.Weight,
         IsResized:           true,
         SizeNew:             0,
-        ErrorMessage:        err,
         DateUpdatedOriginal: "2022-01-01",
         DateUpdatedNew:      "2024-02-20",
         DateCreatedOriginal: "2022-01-01",
