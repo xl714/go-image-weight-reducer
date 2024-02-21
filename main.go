@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/davecgh/go-spew/spew"
+
 	// Import the function from the same directory
 	common "github.com/xl714/go-image-weight-reducer/common"
 	//filesys "github.com/xl714/go-image-weight-reducer/common"
@@ -16,7 +18,6 @@ type Arguments struct {
 	Verbose   bool
 }
 
-
 type FileInfo struct {
 	Path   string
 	Name   string
@@ -26,15 +27,15 @@ type FileInfo struct {
 }
 
 type ProcessInfo struct {
-	Path string
-	SizeOriginal float64
-	IsResized bool
-	SizeNew float64
-	ErrorMessage string
-	DateUpdatedOriginal string
-	DateUpdatedNew string
-	DateCreatedOriginal string
-	DateCreatedNew string
+	Path           string
+	PathNew        string
+	WeightOriginal float64
+	WeightNew      float64
+	// ErrorMessage        string
+	// DateUpdatedOriginal string
+	// DateUpdatedNew      string
+	// DateCreatedOriginal string
+	// DateCreatedNew      string
 }
 
 func main() {
@@ -49,13 +50,12 @@ func main() {
 	fmt.Printf("Limit enabled: %d\n", args.Limit)
 	fmt.Printf("Verbose mode: %t\n", args.Verbose)
 
-	//imageFiles, err := filesys.ListFiles("images", []string{".png", ".jpg", ".jpeg"}, false)
-	imageFiles, err := common.ListFiles("images", []string{".jpg", ".jpeg"}, false)
+	imageFiles, err := common.ListFiles("images", []string{".png", ".jpg", ".jpeg"}, false)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
-	
+
 	var wg sync.WaitGroup
 	processInfoChan := make(chan ProcessInfo)
 
@@ -70,7 +70,7 @@ func main() {
 		if file.Weight > args.MaxWeight {
 			fmt.Println("   => Add to process")
 			wg.Add(1)
-			go processFile(file, args.MaxWeight, args.Verbose, &wg, processInfoChan)	
+			go processFile(file, args.MaxWeight, args.Verbose, &wg, processInfoChan)
 			// if err != nil {
 			// 	fmt.Println("    Error parsing arguments:", err)
 			// } else {
@@ -84,33 +84,36 @@ func main() {
 		wg.Wait()
 		close(processInfoChan)
 	}()
-	fmt.Println("All done infos")
+	fmt.Print("\nAll done. Processed files infos:\n")
 	for processInfo := range processInfoChan {
 		// fmt.Printf("File: %s, Size: %d bytes\n", fileInfo.Path, fileInfo.Size)
-		fmt.Printf("%+v\n", processInfo)
+		// fmt.Printf("%+v\n", processInfo) // print any struct
+		fmt.Printf("\n")
+		spew.Dump(processInfo)
 	}
 }
 
 func processFile(file common.FileInfo, maxWeight float64, verbose bool, wg *sync.WaitGroup, ch chan<- ProcessInfo) {
 	defer wg.Done()
 
-	newPath, err := imagehelper.ResizeImage(file.Path, file.Ext, file.Weight, maxWeight , verbose)
+	pathNew, WeightNew, err := imagehelper.ResizeImage(file.Path, file.Ext, file.Weight, maxWeight, verbose)
 	if err != nil {
 		fmt.Println("    Error  imagehelper.ResizeImage:", err)
-	} else {
-		fmt.Printf("   Image reduced new path: %s\n", newPath)
 	}
+	// else {
+	// 	fmt.Printf("   Image reduced new path: %s\n", pathNew)
+	// }
 
 	processInfo := ProcessInfo{
-        Path:                newPath,
-        SizeOriginal:        file.Weight,
-        IsResized:           true,
-        SizeNew:             0,
-        DateUpdatedOriginal: "2022-01-01",
-        DateUpdatedNew:      "2024-02-20",
-        DateCreatedOriginal: "2022-01-01",
-        DateCreatedNew:      "2024-02-20",
-    }
+		Path:           file.Path,
+		PathNew:        pathNew,
+		WeightOriginal: file.Weight,
+		WeightNew:      WeightNew,
+		// DateUpdatedOriginal: "2022-01-01",
+		// DateUpdatedNew:      "2024-02-20",
+		// DateCreatedOriginal: "2022-01-01",
+		// DateCreatedNew:      "2024-02-20",
+	}
 
 	ch <- processInfo
 }

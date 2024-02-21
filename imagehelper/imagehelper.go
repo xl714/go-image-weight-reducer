@@ -12,20 +12,21 @@ import (
 	"strings"
 
 	"github.com/nfnt/resize"
+	"github.com/xl714/go-image-weight-reducer/common"
 )
 
-func ResizeImage(imgPath string, ext string, weight float64, maxWeight float64, verbose bool) (string, error) {
+func ResizeImage(imgPath string, ext string, weight float64, maxWeight float64, verbose bool) (string, float64, error) {
 	//maxWeight = maxWeight * 1e6
 	file, err := os.Open(imgPath)
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 	defer file.Close()
 
 	// Decode the image.
 	img, _, err := image.Decode(file)
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 
 	// get file width
@@ -42,13 +43,13 @@ func ResizeImage(imgPath string, ext string, weight float64, maxWeight float64, 
 		log.Fatal(err)
 	}
 
-	fmt.Printf(" => Resized image size: %.2f MB\n", sizeInMB)
+	// fmt.Printf(" => Resized image size: %.2f MB\n", sizeInMB)
 
 	// Create a new file for the resized image.
-	newPath := strings.TrimSuffix(imgPath, filepath.Ext(imgPath)) + "_resized" + filepath.Ext(imgPath)
-	outFile, err := os.Create(newPath)
+	pathNew := strings.TrimSuffix(imgPath, filepath.Ext(imgPath)) + "_resized" + filepath.Ext(imgPath)
+	outFile, err := os.Create(pathNew)
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 	defer outFile.Close()
 
@@ -60,12 +61,15 @@ func ResizeImage(imgPath string, ext string, weight float64, maxWeight float64, 
 		err = png.Encode(outFile, newImg)
 	}
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 
-	fmt.Printf("Resized and saved: %s\n", outFile.Name())
-
-	return newPath, nil
+	err = common.CopyFileMetadata(imgPath, pathNew)
+	if err != nil {
+		fmt.Println("    copyFileMetadata failed:", err)
+	}
+	//fmt.Printf("Resized and saved: %s\n", outFile.Name())
+	return pathNew, sizeInMB, nil
 
 }
 

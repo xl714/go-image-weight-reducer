@@ -2,8 +2,11 @@ package common
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+
+	"syscall"
 )
 
 // FileInfo holds details about a file or directory
@@ -98,6 +101,50 @@ func GetFileWeight(path string) (float64, error) {
 	fileSizeMB := float64(fileInfo.Size()) / (1024 * 1024)
 
 	return fileSizeMB, nil
+}
+
+func CopyFileMetadata(sourcePath, destinationPath string) error {
+	// Get source file information
+	sourceInfo, err := os.Stat(sourcePath)
+	if err != nil {
+		return err
+	}
+
+	// Open the source file
+	sourceFile, err := os.Open(sourcePath)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	// Create the destination file
+	destinationFile, err := os.Create(destinationPath)
+	if err != nil {
+		return err
+	}
+	defer destinationFile.Close()
+
+	// Copy file content
+	_, err = io.Copy(destinationFile, sourceFile)
+	if err != nil {
+		return err
+	}
+
+	// Copy metadata (timestamps)
+	atime := syscall.NsecToTimeval(sourceInfo.ModTime().UnixNano())
+	mtime := syscall.NsecToTimeval(sourceInfo.ModTime().UnixNano())
+	err = syscall.Utimes(destinationPath, []syscall.Timeval{atime, mtime})
+	if err != nil {
+		return err
+	}
+
+	// Set the access time
+	err = os.Chtimes(destinationPath, sourceInfo.ModTime(), sourceInfo.ModTime())
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // func main() {
