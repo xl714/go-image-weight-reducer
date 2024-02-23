@@ -63,12 +63,13 @@ func main() {
 	fmt.Println("Image files:")
 
 	for i, file := range imageFiles {
-		if args.Limit > 0 && i >= args.Limit {
-			break
-		}
+
 		fmt.Printf("Path: %s, Name: %s, Ext: %s, IsDir: %t, Weight: %.2f\n", file.Path, file.Name, file.Ext, file.IsDir, file.Weight)
 
 		if file.Weight > args.MaxWeight {
+			if args.Limit > 0 && i >= args.Limit {
+				break
+			}
 			fmt.Println("   => Add to process")
 			wg.Add(1)
 			go func(file common.FileInfo, args common.Arguments) {

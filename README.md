@@ -25,8 +25,23 @@ go fmt main.go
 Building a Binary: To create a standalone executable file, use the go build command:
 
 ```
-go build -o GoImageWeightReducerExe main.go
+# linux
+go build -o build/GoImageWeightReducerBin main.go
+
+# Windows
+go build -o build/GoImageWeightReducer.exe main.go
 ```
+
+Test:
+
+```
+# linux
+rm images/_img_1_resized.jpg; rm images/_img_2_resized.png ; ./build/GoImageWeightReducerBin  --Image-max-weight=1.1
+
+# Windows
+rm images/_img_1_resized.jpg; rm images/_img_2_resized.png ; ./build/GoImageWeightReducer.exe  --Image-max-weight=1.1
+```
+ 
 
 This will create an executable file named hello in your project directory. You can run it directly without the go run command.
 
