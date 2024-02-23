@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/sqweek/dialog"
 
 	// Import the function from the same directory
 	common "github.com/xl714/go-image-weight-reducer/common"
@@ -40,6 +41,15 @@ type ProcessInfo struct {
 }
 
 func main() {
+
+	selectedFolder, err := dialog.Directory().Title("Select a folder").Browse()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	fmt.Println("Selected folder:", selectedFolder)
+
 	args, err := common.ParseArguments()
 	if err != nil {
 		fmt.Println("Error parsing arguments:", err)
@@ -51,7 +61,7 @@ func main() {
 	fmt.Printf("Limit enabled: %d\n", args.Limit)
 	fmt.Printf("Verbose mode: %t\n", args.Verbose)
 
-	imageFiles, err := common.ListFiles("images", []string{".png", ".jpg", ".jpeg"}, false)
+	imageFiles, err := common.ListFiles(selectedFolder, []string{".png", ".jpg", ".jpeg"}, false)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
