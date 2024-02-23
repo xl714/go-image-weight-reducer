@@ -15,32 +15,47 @@ import (
 	"github.com/xl714/go-image-weight-reducer/common"
 )
 
-func ResizeImage(imgPath string, ext string, weight float64, maxWeight float64, verbose bool) (string, float64, error) {
+func ResizeImage(imgPath string, ext string, weight float64, maxWeight float64, verbose bool) (string, float64, int64, error) {
+	var counter int64
+	var newImg image.Image
+	var err error
+
+	counter = 0
+	coef := 0.95
+
 	//maxWeight = maxWeight * 1e6
 	file, err := os.Open(imgPath)
 	if err != nil {
-		return "", 0, err
+		return "", 0, counter, err
 	}
 	defer file.Close()
 
 	// Decode the image.
 	img, _, err := image.Decode(file)
 	if err != nil {
-		return "", 0, err
+		return "", 0, counter, err
 	}
 
-	// get file width
-	width := img.Bounds().Max.X
-	coef := 0.95
-	newWidth := uint(float64(width) * coef)
+	newImg = img
+	sizeInMB := weight
 
-	// Resize the image to the specified width while maintaining aspect ratio.
-	newImg := resize.Resize(newWidth, 0, img, resize.Lanczos3)
+	for sizeInMB > maxWeight && counter < 10 {
 
-	// Get the size of the resized image in MB
-	sizeInMB, err := imageSizeInMB(newImg)
-	if err != nil {
-		log.Fatal(err)
+		// get file width
+		width := newImg.Bounds().Max.X
+		newWidth := uint(float64(width) * coef)
+
+		// Resize the image to the specified width while maintaining aspect ratio.
+		newImg = resize.Resize(newWidth, 0, newImg, resize.Lanczos3)
+		//fmt.Printf("====> Type of newImg: %T\n", newImg)
+
+		// Get the size of the resized image in MB
+		sizeInMB, err = imageSizeInMB(newImg)
+		if err != nil {
+			log.Fatal(err)
+			break
+		}
+		counter++
 	}
 
 	// fmt.Printf(" => Resized image size: %.2f MB\n", sizeInMB)
@@ -49,7 +64,7 @@ func ResizeImage(imgPath string, ext string, weight float64, maxWeight float64, 
 	pathNew := strings.TrimSuffix(imgPath, filepath.Ext(imgPath)) + "_resized" + filepath.Ext(imgPath)
 	outFile, err := os.Create(pathNew)
 	if err != nil {
-		return "", 0, err
+		return "", 0, counter, err
 	}
 	defer outFile.Close()
 
@@ -61,7 +76,7 @@ func ResizeImage(imgPath string, ext string, weight float64, maxWeight float64, 
 		err = png.Encode(outFile, newImg)
 	}
 	if err != nil {
-		return "", 0, err
+		return "", 0, counter, err
 	}
 
 	err = common.CopyFileMetadata(imgPath, pathNew)
@@ -69,7 +84,7 @@ func ResizeImage(imgPath string, ext string, weight float64, maxWeight float64, 
 		fmt.Println("    copyFileMetadata failed:", err)
 	}
 	//fmt.Printf("Resized and saved: %s\n", outFile.Name())
-	return pathNew, sizeInMB, nil
+	return pathNew, sizeInMB, counter, nil
 
 }
 

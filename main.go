@@ -31,6 +31,7 @@ type ProcessInfo struct {
 	PathNew        string
 	WeightOriginal float64
 	WeightNew      float64
+	ResizedNumber  int64
 	// ErrorMessage        string
 	// DateUpdatedOriginal string
 	// DateUpdatedNew      string
@@ -57,7 +58,7 @@ func main() {
 	}
 
 	var wg sync.WaitGroup
-	processInfoChan := make(chan ProcessInfo)
+	processInfoChan := make(chan ProcessInfo, 2)
 
 	fmt.Println("Image files:")
 
@@ -70,20 +71,24 @@ func main() {
 		if file.Weight > args.MaxWeight {
 			fmt.Println("   => Add to process")
 			wg.Add(1)
-			go processFile(file, args.MaxWeight, args.Verbose, &wg, processInfoChan)
-			// if err != nil {
-			// 	fmt.Println("    Error parsing arguments:", err)
-			// } else {
-			// 	fmt.Printf("   Image weight new path: %s\n", newPath)
-			// }
+			go func(file common.FileInfo, args common.Arguments) {
+				defer wg.Done()
+				processFile(file, args.MaxWeight, args.Verbose, processInfoChan)
+			}(file, args)
+			// go processFile(file, args.MaxWeight, args.Verbose, &wg, processInfoChan)
 		} else {
 			fmt.Println("   Image weight is less than max weight")
 		}
 	}
+
 	go func() {
 		wg.Wait()
 		close(processInfoChan)
 	}()
+
+	// Wait for all workers to finish before ranging over the channel
+	wg.Wait()
+
 	fmt.Print("\nAll done. Processed files infos:\n")
 	for processInfo := range processInfoChan {
 		// fmt.Printf("File: %s, Size: %d bytes\n", fileInfo.Path, fileInfo.Size)
@@ -93,10 +98,10 @@ func main() {
 	}
 }
 
-func processFile(file common.FileInfo, maxWeight float64, verbose bool, wg *sync.WaitGroup, ch chan<- ProcessInfo) {
-	defer wg.Done()
+func processFile(file common.FileInfo, maxWeight float64, verbose bool, processInfo chan<- ProcessInfo) {
+	// defer wg.Done()
 
-	pathNew, WeightNew, err := imagehelper.ResizeImage(file.Path, file.Ext, file.Weight, maxWeight, verbose)
+	pathNew, weightNew, resizedNumber, err := imagehelper.ResizeImage(file.Path, file.Ext, file.Weight, maxWeight, verbose)
 	if err != nil {
 		fmt.Println("    Error  imagehelper.ResizeImage:", err)
 	}
@@ -104,16 +109,15 @@ func processFile(file common.FileInfo, maxWeight float64, verbose bool, wg *sync
 	// 	fmt.Printf("   Image reduced new path: %s\n", pathNew)
 	// }
 
-	processInfo := ProcessInfo{
+	processInfo <- ProcessInfo{
 		Path:           file.Path,
 		PathNew:        pathNew,
 		WeightOriginal: file.Weight,
-		WeightNew:      WeightNew,
+		WeightNew:      weightNew,
+		ResizedNumber:  resizedNumber,
 		// DateUpdatedOriginal: "2022-01-01",
 		// DateUpdatedNew:      "2024-02-20",
 		// DateCreatedOriginal: "2022-01-01",
 		// DateCreatedNew:      "2024-02-20",
 	}
-
-	ch <- processInfo
 }
