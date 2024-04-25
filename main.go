@@ -14,9 +14,10 @@ import (
 )
 
 type Arguments struct {
-	MaxWeight float64
-	Limit     int
-	Verbose   bool
+	MaxWeight    float64
+	Limit        int
+	Verbose      bool
+	SelectFolder bool
 }
 
 type FileInfo struct {
@@ -42,14 +43,6 @@ type ProcessInfo struct {
 
 func main() {
 
-	selectedFolder, err := dialog.Directory().Title("Select a folder").Browse()
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-
-	fmt.Println("Selected folder:", selectedFolder)
-
 	args, err := common.ParseArguments()
 	if err != nil {
 		fmt.Println("Error parsing arguments:", err)
@@ -60,6 +53,19 @@ func main() {
 	fmt.Printf("Image max weight: %.2f MB\n", args.MaxWeight)
 	fmt.Printf("Limit enabled: %d\n", args.Limit)
 	fmt.Printf("Verbose mode: %t\n", args.Verbose)
+	fmt.Printf("Select folder: %t\n", args.SelectFolder)
+	
+	selectedFolder := "."
+
+	if args.SelectFolder {
+		selectedFolder, err = dialog.Directory().Title("Select a folder").Browse()
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+	}
+
+	fmt.Println("Selected folder:", selectedFolder)
 
 	imageFiles, err := common.ListFiles(selectedFolder, []string{".png", ".jpg", ".jpeg"}, false)
 	if err != nil {
