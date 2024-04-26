@@ -78,6 +78,8 @@ func main() {
 
 	fmt.Println("Image files:")
 
+	counter := 0
+
 	for i, file := range imageFiles {
 
 		fmt.Printf("Path: %s, Name: %s, Ext: %s, IsDir: %t, Weight: %.2f\n", file.Path, file.Name, file.Ext, file.IsDir, file.Weight)
@@ -88,6 +90,7 @@ func main() {
 			}
 			fmt.Println("   => Add to process")
 			wg.Add(1)
+			counter++
 			go func(file common.FileInfo, args common.Arguments) {
 				defer wg.Done()
 				processFile(file, args.MaxWeight, args.Verbose, processInfoChan)
@@ -98,13 +101,23 @@ func main() {
 		}
 	}
 
+	
 	go func() {
+		//for i := 0; i < counter; i++ {
 		wg.Wait()
 		close(processInfoChan)
+		//}
 	}()
+	
+	
 
-	// Wait for all workers to finish before ranging over the channel
-	wg.Wait()
+	// go func() {
+	// 	wg.Wait()
+	// 	close(processInfoChan)
+	// }()
+
+	// // Wait for all workers to finish before ranging over the channel
+	// wg.Wait()
 
 	fmt.Print("\nAll done. Processed files infos:\n")
 	for processInfo := range processInfoChan {
