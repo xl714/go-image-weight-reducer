@@ -39,13 +39,16 @@ func ResizeImage(imgPath string, ext string, weight float64, maxWeight float64, 
 	newImg = img
 	sizeInMB := weight
 
-	for counter < 10 {
+	// for counter < 10 {
+	for sizeInMB >= maxWeight {
 
 		// get file width
 		width := newImg.Bounds().Max.X
 		newWidth := uint(float64(width) * coef)
 
 		// Resize the image to the specified width while maintaining aspect ratio.
+		counter++
+		//fmt.Printf("Count processed: %s, %d\n", imgPath, counter)
 		newImg = resize.Resize(newWidth, 0, newImg, resize.Lanczos3)
 		//fmt.Printf("====> Type of newImg: %T\n", newImg)
 
@@ -55,10 +58,10 @@ func ResizeImage(imgPath string, ext string, weight float64, maxWeight float64, 
 			log.Fatal(err)
 			break
 		}
-		if sizeInMB < maxWeight{
+		if sizeInMB < maxWeight || counter > 30{
+			fmt.Printf("Cbreak condition\n")
 			break
 		}
-		counter++
 	}
 
 	// fmt.Printf(" => Resized image size: %.2f MB\n", sizeInMB)
