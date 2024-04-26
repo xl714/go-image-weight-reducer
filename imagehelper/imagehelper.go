@@ -86,7 +86,7 @@ func ResizeImage(imgPath string, ext string, weight float64, maxWeight float64, 
 	if err != nil {
 		fmt.Println("    copyFileMetadata failed:", err)
 	}
-	//fmt.Printf("Resized and saved: %s\n", outFile.Name())
+	fmt.Printf("Resized and saved: %s\n", outFile.Name())
 	return pathNew, sizeInMB, counter, nil
 
 }

@@ -2,7 +2,6 @@ package common
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 
@@ -110,25 +109,25 @@ func CopyFileMetadata(sourcePath, destinationPath string) error {
 		return err
 	}
 
-	// Open the source file
-	sourceFile, err := os.Open(sourcePath)
-	if err != nil {
-		return err
-	}
-	defer sourceFile.Close()
+	// // Open the source file
+	// sourceFile, err := os.Open(sourcePath)
+	// if err != nil {
+	// 	return err
+	// }
+	// defer sourceFile.Close()
 
-	// Create the destination file
-	destinationFile, err := os.Create(destinationPath)
-	if err != nil {
-		return err
-	}
-	defer destinationFile.Close()
+	// // Create the destination file
+	// destinationFile, err := os.Create(destinationPath)
+	// if err != nil {
+	// 	return err
+	// }
+	// defer destinationFile.Close()
 
-	// Copy file content
-	_, err = io.Copy(destinationFile, sourceFile)
-	if err != nil {
-		return err
-	}
+	// // Copy file content
+	// _, err = io.Copy(destinationFile, sourceFile)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// Copy metadata (timestamps)
 	atime := syscall.NsecToTimeval(sourceInfo.ModTime().UnixNano())
