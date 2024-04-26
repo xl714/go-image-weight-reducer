@@ -8,6 +8,10 @@ go mod init github.com/xl714/go-image-weight-reducer
 go mod tidy
 
 go run main.go
+
+rm _img_1_resized.jpg _img_2_resized.png; go run main.go
+
+
 ```
 
 to import a new external module
@@ -36,10 +40,10 @@ Test:
 
 ```
 # linux
-rm images/_img_1_resized.jpg; rm images/_img_2_resized.png ; ./build/GoImageWeightReducerBin  --Image-max-weight=1.1
+rm _img_1_resized.jpg; rm _img_2_resized.png ; ./build/GoImageWeightReducerBin  --image-max-weight=1.1
 
 # Windows
-rm images/_img_1_resized.jpg; rm images/_img_2_resized.png ; ./build/GoImageWeightReducer.exe  --Image-max-weight=1.1
+rm _img_1_resized.jpg; rm _img_2_resized.png ; ./build/GoImageWeightReducer.exe  --image-max-weight=1.1
 ```
  
 

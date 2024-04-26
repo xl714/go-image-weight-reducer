@@ -39,7 +39,7 @@ func ResizeImage(imgPath string, ext string, weight float64, maxWeight float64, 
 	newImg = img
 	sizeInMB := weight
 
-	for sizeInMB > maxWeight && counter < 10 {
+	for counter < 10 {
 
 		// get file width
 		width := newImg.Bounds().Max.X
@@ -53,6 +53,9 @@ func ResizeImage(imgPath string, ext string, weight float64, maxWeight float64, 
 		sizeInMB, err = imageSizeInMB(newImg)
 		if err != nil {
 			log.Fatal(err)
+			break
+		}
+		if sizeInMB < maxWeight{
 			break
 		}
 		counter++
